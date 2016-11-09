@@ -1,7 +1,7 @@
 import React from 'react'
 import ReactDOM from 'react-dom'
 import App from './components/App'
-// import { createStore } from 'redux'
+import { createStore } from 'redux'
 
 const counter = (state = 0, action) => {
   switch (action.type) {
@@ -14,39 +14,78 @@ const counter = (state = 0, action) => {
   }
 }
 
-const createStore = (reducer) => {
-  let state
-  let listeners = []
-  const getState = () => state
-  const dispatch = (action) => {
-    state = reducer(state, action)
-    listeners.forEach(listener => listener())
-    debugger
+const todos = (state = [], action) => {
+  switch (action.type) {
+    case 'ADD_TODO':
+      return [
+        ...state,
+        {
+          id: action.id,
+          text: action.text,
+          complited: false
+        }
+      ]
+    default:
+      return state
   }
-  const subscribe = (listener) => {
-    listeners.push(listener)
-    return () => {
-      listeners = listeners.filter( l => l !== listener)
-    }
-  }
+}
+// Store From Scratch
+// const createStore = (reducer) => {
+//   let state
+//   let listeners = []
+//   const getState = () => state
+//   const dispatch = (action) => {
+//     state = reducer(state, action)
+//     listeners.forEach(listener => listener())
+//     debugger
+//   }
+//   const subscribe = (listener) => {
+//     listeners.push(listener)
+//     return () => {
+//       listeners = listeners.filter( l => l !== listener)
+//     }
+//   }
 
-  dispatch({})
-  return { getState, dispatch, subscribe }
+//   dispatch({})
+//   return { getState, dispatch, subscribe }
+// }
+
+
+
+const Counter = ({ value, onIncrement, onDecrement}) => {
+  let list = [1,2,3]
+
+  console.log([...list])
+  return(
+    <div>
+      <h1>{value}</h1>
+      <button onClick={onIncrement}>+</button>
+      <button onClick={onDecrement}>-</button>
+    </div>
+  )
 }
 
 
 
 let store = createStore(counter)
+
 const render = () => {
-  document.body.innerText = store.getState();
+  ReactDOM.render(
+    <Counter
+      value={store.getState()}
+      onIncrement={() => store.dispatch({type: 'INCREMENT'})}
+      onDecrement={() => store.dispatch({type: 'DECREMENT'})}
+    />,
+    document.getElementById('app')
+  )
 }
 
 store.subscribe(render)
 render()
 
-document.addEventListener('click', () => {
-  store.dispatch({ type: 'INCREMENT'})
-})
+// document.addEventListener('click', () => {
+//   store.dispatch({ type: 'INCREMENT'})
+// })
 
 
 // ReactDOM.render(
