@@ -14,6 +14,63 @@ const counter = (state = 0, action) => {
   }
 }
 
+// Store From Scratch
+// const createStore = (reducer) => {
+//   let state
+//   let listeners = []
+//   const getState = () => state
+//   const dispatch = (action) => {
+//     state = reducer(state, action)
+//     listeners.forEach(listener => listener())
+//     debugger
+//   }
+//   const subscribe = (listener) => {
+//     listeners.push(listener)
+//     return () => {
+//       listeners = listeners.filter( l => l !== listener)
+//     }
+//   }
+
+//   dispatch({})
+//   return { getState, dispatch, subscribe }
+// }
+
+// let store = createStore(counter)
+
+// const Counter = ({ value, onIncrement, onDecrement}) => {
+//   return(
+//     <div>
+//       <h1>{value}</h1>
+//       <button onClick={onIncrement}>+</button>
+//       <button onClick={onDecrement}>-</button>
+//     </div>
+//   )
+// }
+
+// const render = () => {
+//   ReactDOM.render(
+//     <Counter
+//       value={store.getState()}
+//       onIncrement={() => store.dispatch({type: 'INCREMENT'})}
+//       onDecrement={() => store.dispatch({type: 'DECREMENT'})}
+//     />,
+//     document.getElementById('app')
+//   )
+// }
+
+// store.subscribe(render)
+// render()
+
+// document.addEventListener('click', () => {
+//   store.dispatch({ type: 'INCREMENT'})
+// })
+
+
+// ReactDOM.render(
+//   <App />,
+//   document.getElementById('app')
+// );
+
 const todo = (state, action) => {
   switch (action.type) {
     case 'ADD_TODO':
@@ -48,66 +105,44 @@ const todos = (state = [], action) => {
       return state
   }
 }
-// Store From Scratch
-// const createStore = (reducer) => {
-//   let state
-//   let listeners = []
-//   const getState = () => state
-//   const dispatch = (action) => {
-//     state = reducer(state, action)
-//     listeners.forEach(listener => listener())
-//     debugger
-//   }
-//   const subscribe = (listener) => {
-//     listeners.push(listener)
-//     return () => {
-//       listeners = listeners.filter( l => l !== listener)
-//     }
-//   }
 
-//   dispatch({})
-//   return { getState, dispatch, subscribe }
-// }
-
-
-
-const Counter = ({ value, onIncrement, onDecrement}) => {
-  let list = [1,2,3]
-
-  console.log([...list])
-  return(
-    <div>
-      <h1>{value}</h1>
-      <button onClick={onIncrement}>+</button>
-      <button onClick={onDecrement}>-</button>
-    </div>
-  )
+const setVisibilityFilter = (state = 'SHOW_ALL', action) => {
+  switch (action.type) {
+    case 'SET_VISIBILITY_FILTER':
+      return action.filter
+    default:
+      return state
+  }
 }
 
-
-
-let store = createStore(counter)
-
-const render = () => {
-  ReactDOM.render(
-    <Counter
-      value={store.getState()}
-      onIncrement={() => store.dispatch({type: 'INCREMENT'})}
-      onDecrement={() => store.dispatch({type: 'DECREMENT'})}
-    />,
-    document.getElementById('app')
-  )
+const todoApp = (state = {}, action) => {
+  return {
+    todos: todos(state.todos, action),
+    visibilityFilter: setVisibilityFilter(state.visibilityFilter, action)
+  }
 }
 
-store.subscribe(render)
-render()
+let store = createStore(todoApp)
 
-// document.addEventListener('click', () => {
-//   store.dispatch({ type: 'INCREMENT'})
-// })
+console.log('Initial state.')
+console.log(store.getState())
+console.log('--------------')
 
+console.log('Dispatching ADD_TODO')
+store.dispatch({
+  type: 'ADD_TODO',
+  id: 0,
+  text: 'Go shoping'
+})
+console.log('Current state.')
+console.log(store.getState())
+console.log('--------------')
 
-// ReactDOM.render(
-//   <App />,
-//   document.getElementById('app')
-// );
+console.log('Dispatching TOGGLE_TODO')
+store.dispatch({
+  type: 'TOGGLE_TODO',
+  id: 0
+})
+console.log('Current state.')
+console.log(store.getState())
+console.log('--------------')
