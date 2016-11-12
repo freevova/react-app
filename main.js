@@ -1,75 +1,8 @@
-import React from 'react'
+import React, { Component } from 'react'
 import ReactDOM from 'react-dom'
 import App from './components/App'
-import { createStore } from 'redux'
+import { createStore, combineReducers } from 'redux'
 
-const counter = (state = 0, action) => {
-  switch (action.type) {
-  case 'INCREMENT':
-    return state + 1
-  case 'DECREMENT':
-    return state - 1
-  default:
-    return state
-  }
-}
-
-// Store From Scratch
-// const createStore = (reducer) => {
-//   let state
-//   let listeners = []
-//   const getState = () => state
-//   const dispatch = (action) => {
-//     state = reducer(state, action)
-//     listeners.forEach(listener => listener())
-//     debugger
-//   }
-//   const subscribe = (listener) => {
-//     listeners.push(listener)
-//     return () => {
-//       listeners = listeners.filter( l => l !== listener)
-//     }
-//   }
-
-//   dispatch({})
-//   return { getState, dispatch, subscribe }
-// }
-
-// let store = createStore(counter)
-
-// const Counter = ({ value, onIncrement, onDecrement}) => {
-//   return(
-//     <div>
-//       <h1>{value}</h1>
-//       <button onClick={onIncrement}>+</button>
-//       <button onClick={onDecrement}>-</button>
-//     </div>
-//   )
-// }
-
-// const render = () => {
-//   ReactDOM.render(
-//     <Counter
-//       value={store.getState()}
-//       onIncrement={() => store.dispatch({type: 'INCREMENT'})}
-//       onDecrement={() => store.dispatch({type: 'DECREMENT'})}
-//     />,
-//     document.getElementById('app')
-//   )
-// }
-
-// store.subscribe(render)
-// render()
-
-// document.addEventListener('click', () => {
-//   store.dispatch({ type: 'INCREMENT'})
-// })
-
-
-// ReactDOM.render(
-//   <App />,
-//   document.getElementById('app')
-// );
 
 const todo = (state, action) => {
   switch (action.type) {
@@ -106,7 +39,7 @@ const todos = (state = [], action) => {
   }
 }
 
-const setVisibilityFilter = (state = 'SHOW_ALL', action) => {
+const visibilityFilter = (state = 'SHOW_ALL', action) => {
   switch (action.type) {
     case 'SET_VISIBILITY_FILTER':
       return action.filter
@@ -115,34 +48,61 @@ const setVisibilityFilter = (state = 'SHOW_ALL', action) => {
   }
 }
 
-const todoApp = (state = {}, action) => {
-  return {
-    todos: todos(state.todos, action),
-    visibilityFilter: setVisibilityFilter(state.visibilityFilter, action)
-  }
-}
+// const combineReducers = (reducers) => {
+//   return (state = {}, action) => {
+//     return Object.keys(reducers).reduce((nextState, key) => {
+//       nextState[key] = reducers[key](
+//         state.key,
+//         action
+//       )
+//       return nextState
+//     }, {})
+//   }
+// }
+
+const todoApp = combineReducers({
+  todos,
+  visibilityFilter
+})
 
 let store = createStore(todoApp)
 
-console.log('Initial state.')
-console.log(store.getState())
-console.log('--------------')
+let nextTodoId = 0
+class TodoApp extends Component {
+  render() {
+    return (
+      <div>
+        <button onClick={ () => {
+            store.dispatch({
+              type: 'ADD_TODO',
+              text: 'Test',
+              id: nextTodoId++
+            })
+          }}
+        >
+          Add Todo
+        </button>
+        <ul>
+          {this.props.todos.map( todo =>
+            <li key={todo.id}>
+              {todo.text}
+            </li>
+          )}
+        </ul>
+      </div>
+    )
+  }
+}
 
-console.log('Dispatching ADD_TODO')
-store.dispatch({
-  type: 'ADD_TODO',
-  id: 0,
-  text: 'Go shoping'
-})
-console.log('Current state.')
-console.log(store.getState())
-console.log('--------------')
+const render = () => {
+  ReactDOM.render(
+    <TodoApp
+      todos={store.getState().todos}
+    />,
+    document.getElementById('app')
+  )
+}
 
-console.log('Dispatching TOGGLE_TODO')
-store.dispatch({
-  type: 'TOGGLE_TODO',
-  id: 0
-})
-console.log('Current state.')
-console.log(store.getState())
-console.log('--------------')
+
+store.subscribe(render)
+render()
