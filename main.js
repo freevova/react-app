@@ -71,39 +71,20 @@ const Link = ({ active, children, onClick }) => {
   )
 }
 
-
-class FilterLink extends Component {
-  componentDidMount() {
-    const { store } = this.context
-    this.unsubscribe = store.subscribe(() =>
-      this.forceUpdate()
-    )
-  }
-
-  componentWillUnmount() {
-    this.unsubscribe()
-  }
-
-  render() {
-    const { filter, children } = this.props
-    const { store } = this.context
-    const { visibilityFilter } = store.getState()
-    const { dispatch } = store
-
-    return (
-      <Link
-        active={ filter === visibilityFilter }
-        onClick={ () => dispatch({type: 'SET_VISIBILITY_FILTER', filter}) }
-      >
-        {children}
-      </Link>
-    )
+const mapStateToLinkProps = (state, ownProps) => {
+  return {
+    active: ownProps.filter === state.visibilityFilter
   }
 }
-
-FilterLink.contextTypes = {
-  store: React.PropTypes.object
+const mapDispatchToLinkProps = (dispatch, ownProps) => {
+  return {
+    onClick: () => dispatch({type: 'SET_VISIBILITY_FILTER', filter: ownProps.filter})
+  }
 }
+const FilterLink = connect(
+  mapStateToLinkProps,
+  mapDispatchToLinkProps
+)(Link)
 
 const getVisibileTodos = (todos, filter) => {
   switch (filter) {
@@ -141,32 +122,30 @@ const TodoList = ({ todos, onTodoClick }) => (
   </ul>
 )
 
-const mapStateToProps = (state) => {
+const mapStateToTodoListProps = (state) => {
   return {
     todos: getVisibileTodos(state.todos, state.visibilityFilter)
   }
 }
-
-const mapDispatchToProps = (dispatch) => {
+const mapDispatchToTodoListProps = (dispatch) => {
   return {
     onTodoClick: (id) => dispatch({ type: 'TOGGLE_TODO', id})
   }
 }
-
 const VisibleTodoList = connect(
-  mapStateToProps,
-  mapDispatchToProps
+  mapStateToTodoListProps,
+  mapDispatchToTodoListProps
 )(TodoList)
 
 let nextTodoId = 0
-const AddTodo = (props, { store }) => {
+let AddTodo = ({ dispatch }) => {
   let input
 
   return (
     <div>
       <input ref={node => { input = node }} />
       <button onClick={ () => {
-        store.dispatch({ type: 'ADD_TODO', id: nextTodoId++, text: input.value })
+        dispatch({ type: 'ADD_TODO', id: nextTodoId++, text: input.value })
         input.value = ''
       }}>
         Add Todo
@@ -174,10 +153,12 @@ const AddTodo = (props, { store }) => {
     </div>
   )
 }
-
-AddTodo.contextTypes = {
-  store: React.PropTypes.object
-}
+//  WE CAN WRITE? BUT IT IS THE DEFAULT BEHAVIOR
+// AddTodo = connect(
+//   null,
+//   dispatch => { return { dispatch } }
+// )(AddTodo)
+AddTodo = connect()(AddTodo)
 
 const Footer = () => (
   <p>
