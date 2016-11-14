@@ -72,17 +72,19 @@ const Link = ({ active, children, onClick }) => {
 
 class FilterLink extends Component {
   componentDidMount() {
-    store.unsubscribe = store.subscribe(() =>
+    const { store } = this.context
+    this.unsubscribe = store.subscribe(() =>
       this.forceUpdate()
     )
   }
 
   componentWillUnmount() {
-    store.unsubscribe()
+    this.unsubscribe()
   }
 
   render() {
     const { filter, children } = this.props
+    const { store } = this.context
     const { visibilityFilter } = store.getState()
     const { dispatch } = store
 
@@ -95,6 +97,10 @@ class FilterLink extends Component {
       </Link>
     )
   }
+}
+
+FilterLink.contextTypes = {
+  store: React.PropTypes.object
 }
 
 const getVisibileTodos = (todos, filter) => {
@@ -111,8 +117,6 @@ const getVisibileTodos = (todos, filter) => {
       )
   }
 }
-
-let store = createStore(todoApp)
 
 const Todo = ({onClick, completed, text }) => (
   <li
@@ -137,17 +141,18 @@ const TodoList = ({ todos, onTodoClick }) => (
 
 class VisibleTodoList extends Component {
   componentDidMount() {
-    store.unsubscribe = store.subscribe(() =>
+    const { store } = this.context
+    this.unsubscribe = store.subscribe(() =>
       this.forceUpdate()
     )
   }
 
   componentWillUnmount() {
-    store.unsubscribe()
+    this.unsubscribe()
   }
 
   render() {
-    const { props } = this.props
+    const { store } = this.context
     const { todos, visibilityFilter } = store.getState()
 
     return(
@@ -159,8 +164,12 @@ class VisibleTodoList extends Component {
   }
 }
 
+VisibleTodoList.contextTypes = {
+  store: React.PropTypes.object
+}
+
 let nextTodoId = 0
-const AddTodo = () => {
+const AddTodo = (props, { store }) => {
   let input
 
   return (
@@ -176,19 +185,23 @@ const AddTodo = () => {
   )
 }
 
+AddTodo.contextTypes = {
+  store: React.PropTypes.object
+}
+
 const Footer = () => (
   <p>
     Show:
     {' '}
-    <FilterLink filter='SHOW_ALL'>
+    <FilterLink filter='SHOW_ALL' >
       All
     </FilterLink>
     {' '}
-    <FilterLink filter='SHOW_ACTIVE'>
+    <FilterLink filter='SHOW_ACTIVE' >
       Active
     </FilterLink>
     {' '}
-    <FilterLink filter='SHOW_COMPLETED'>
+    <FilterLink filter='SHOW_COMPLETED' >
       Completed
     </FilterLink>
   </p>
@@ -202,8 +215,26 @@ const TodoApp = () => (
   </div>
 )
 
+class Provider extends Component {
+  getChildContext() {
+    return {
+      store: this.props.store
+    }
+  }
+
+  render() {
+    return this.props.children
+  }
+}
+
+Provider.childContextTypes = {
+  store: React.PropTypes.object
+}
+
 ReactDOM.render(
-  <TodoApp />,
+  <Provider store={createStore(todoApp)} >
+    <TodoApp />
+  </Provider>,
   document.getElementById('app')
 )
 
