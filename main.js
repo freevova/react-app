@@ -2,6 +2,8 @@ import React, { Component } from 'react'
 import ReactDOM from 'react-dom'
 import App from './components/App'
 import { createStore, combineReducers } from 'redux'
+import { Provider } from 'react-redux'
+import { connect } from 'react-redux'
 
 
 const todo = (state, action) => {
@@ -139,34 +141,22 @@ const TodoList = ({ todos, onTodoClick }) => (
   </ul>
 )
 
-class VisibleTodoList extends Component {
-  componentDidMount() {
-    const { store } = this.context
-    this.unsubscribe = store.subscribe(() =>
-      this.forceUpdate()
-    )
-  }
-
-  componentWillUnmount() {
-    this.unsubscribe()
-  }
-
-  render() {
-    const { store } = this.context
-    const { todos, visibilityFilter } = store.getState()
-
-    return(
-      <TodoList
-        todos={ getVisibileTodos(todos, visibilityFilter) }
-        onTodoClick={ id => store.dispatch({ type: 'TOGGLE_TODO', id}) }
-      />
-    )
+const mapStateToProps = (state) => {
+  return {
+    todos: getVisibileTodos(state.todos, state.visibilityFilter)
   }
 }
 
-VisibleTodoList.contextTypes = {
-  store: React.PropTypes.object
+const mapDispatchToProps = (dispatch) => {
+  return {
+    onTodoClick: (id) => dispatch({ type: 'TOGGLE_TODO', id})
+  }
 }
+
+const VisibleTodoList = connect(
+  mapStateToProps,
+  mapDispatchToProps
+)(TodoList)
 
 let nextTodoId = 0
 const AddTodo = (props, { store }) => {
@@ -214,22 +204,6 @@ const TodoApp = () => (
     <Footer />
   </div>
 )
-
-class Provider extends Component {
-  getChildContext() {
-    return {
-      store: this.props.store
-    }
-  }
-
-  render() {
-    return this.props.children
-  }
-}
-
-Provider.childContextTypes = {
-  store: React.PropTypes.object
-}
 
 ReactDOM.render(
   <Provider store={createStore(todoApp)} >
